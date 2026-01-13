@@ -1,0 +1,32 @@
+Depth estimation
+- Depth Anything V2 (DepthAnything/Depth-Anything-V2, NeurIPS 2024): https://github.com/DepthAnything/Depth-Anything-V2
+
+Image matching / correspondence
+- MASt3R (naver/mast3r): https://github.com/naver/mast3r
+- SIFT (Scale-Invariant Feature Transform): https://en.wikipedia.org/wiki/Scale-invariant_feature_transform
+- RANSAC: https://en.wikipedia.org/wiki/Random_sample_consensus
+- SuperPoint: https://github.com/magicleap/SuperPointPretrainedNetwork
+- LightGlue: https://github.com/cvg/LightGlue
+- XFeat: https://github.com/verlab/accelerated_features
+- LoFTR: https://github.com/zju3dv/LoFTR
+- RoMa: https://github.com/Parskatt/RoMa
+- RAFT (optical flow): https://github.com/princeton-vl/RAFT
+- SEA-RAFT: https://github.com/princeton-vl/SEA-RAFT
+
+View synthesis / rendering
+- Zip-NeRF (Unofficial PyTorch): https://github.com/SuLvXiangXin/zipnerf-pytorch
+- Learning to Render Novel Views from Wide-Baseline Stereo Pairs (CVPR 2023): https://github.com/yilundu/cross_attention_renderer
+- S-NeRF (Neural Radiance Fields for Street Views): https://github.com/fudan-zvg/S-NeRF
+
+Inpainting
+- MAT (Mask-Aware Transformer): https://github.com/fenglinglwb/MAT
+
+Frame interpolation
+- RIFE: https://github.com/megvii-research/ECCV2022-RIFE
+- IFRNet: https://github.com/ltkong218/IFRNet
+- FILM (Frame Interpolation for Large Motion, ECCV 2022): https://github.com/google-research/frame-interpolation
+- Disney Frame Interpolation Transformer and Uncertainty Guidance: https://assets.studios.disneyresearch.com/app/uploads/2023/05/Frame-Interpolation-Transformer-and-Uncertainty-Guidance-1.pdf
+
+Misc
+- Infinite Nature (Google Research): https://github.com/google-research/google-research/tree/master/infinite_nature
+- Google Maps Immersive View: https://blog.google/intl/fr-fr/nouveautes-produits/explorez-obtenez-des-reponses/google-maps-immersive-view-itineraires-nouvelles-fonctionnalites-ia/

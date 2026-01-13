@@ -1,0 +1,110 @@
+CityScapes - Depth and Segmentation https://www.kaggle.com/datasets/sakshaymahna/cityscapes-depth-and-segmentation
+
+Batch 0/372, Loss: 0.1054
+Batch 20/372, Loss: 0.0075
+Batch 40/372, Loss: 0.0062
+Batch 60/372, Loss: 0.0062
+Batch 80/372, Loss: 0.0045
+Batch 100/372, Loss: 0.0041
+Batch 120/372, Loss: 0.0049
+Batch 140/372, Loss: 0.0035
+Batch 160/372, Loss: 0.0034
+Batch 180/372, Loss: 0.0041
+Batch 200/372, Loss: 0.0029
+Batch 220/372, Loss: 0.0039
+Batch 240/372, Loss: 0.0031
+Batch 260/372, Loss: 0.0031
+Batch 280/372, Loss: 0.0037
+Batch 300/372, Loss: 0.0028
+Batch 320/372, Loss: 0.0041
+Batch 340/372, Loss: 0.0027
+Batch 360/372, Loss: 0.0034
+Moyenne Loss Epoch 1: 0.00529
+
+--- Epoch 2/5 ---
+Batch 0/372, Loss: 0.0029
+Batch 20/372, Loss: 0.0031
+Batch 40/372, Loss: 0.0031
+Batch 60/372, Loss: 0.0025
+Batch 80/372, Loss: 0.0019
+Batch 100/372, Loss: 0.0038
+Batch 120/372, Loss: 0.0021
+Batch 140/372, Loss: 0.0052
+Batch 160/372, Loss: 0.0041
+Batch 180/372, Loss: 0.0031
+Batch 200/372, Loss: 0.0028
+Batch 220/372, Loss: 0.0029
+Batch 240/372, Loss: 0.0023
+Batch 260/372, Loss: 0.0037
+Batch 280/372, Loss: 0.0029
+Batch 300/372, Loss: 0.0023
+Batch 320/372, Loss: 0.0024
+Batch 340/372, Loss: 0.0042
+Batch 360/372, Loss: 0.0027
+Moyenne Loss Epoch 2: 0.00289
+
+--- Epoch 3/5 ---
+Batch 0/372, Loss: 0.0025
+Batch 20/372, Loss: 0.0019
+Batch 40/372, Loss: 0.0032
+Batch 60/372, Loss: 0.0026
+Batch 80/372, Loss: 0.0032
+Batch 100/372, Loss: 0.0028
+Batch 120/372, Loss: 0.0024
+Batch 140/372, Loss: 0.0024
+Batch 160/372, Loss: 0.0029
+Batch 180/372, Loss: 0.0032
+Batch 200/372, Loss: 0.0027
+Batch 220/372, Loss: 0.0022
+Batch 240/372, Loss: 0.0017
+Batch 260/372, Loss: 0.0032
+Batch 280/372, Loss: 0.0026
+Batch 300/372, Loss: 0.0028
+Batch 320/372, Loss: 0.0029
+Batch 340/372, Loss: 0.0021
+Batch 360/372, Loss: 0.0034
+Moyenne Loss Epoch 3: 0.00258
+
+--- Epoch 4/5 ---
+Batch 0/372, Loss: 0.0021
+Batch 20/372, Loss: 0.0020
+Batch 40/372, Loss: 0.0016
+Batch 60/372, Loss: 0.0022
+Batch 80/372, Loss: 0.0025
+Batch 100/372, Loss: 0.0022
+Batch 120/372, Loss: 0.0018
+Batch 140/372, Loss: 0.0021
+Batch 160/372, Loss: 0.0021
+Batch 180/372, Loss: 0.0023
+Batch 200/372, Loss: 0.0019
+Batch 220/372, Loss: 0.0020
+Batch 240/372, Loss: 0.0022
+Batch 260/372, Loss: 0.0025
+Batch 280/372, Loss: 0.0023
+Batch 300/372, Loss: 0.0020
+Batch 320/372, Loss: 0.0027
+Batch 340/372, Loss: 0.0028
+Batch 360/372, Loss: 0.0022
+Moyenne Loss Epoch 4: 0.00239
+
+--- Epoch 5/5 ---
+Batch 0/372, Loss: 0.0023
+Batch 20/372, Loss: 0.0020
+Batch 40/372, Loss: 0.0028
+Batch 60/372, Loss: 0.0029
+Batch 80/372, Loss: 0.0029
+Batch 100/372, Loss: 0.0018
+Batch 120/372, Loss: 0.0020
+Batch 140/372, Loss: 0.0020
+Batch 160/372, Loss: 0.0027
+Batch 180/372, Loss: 0.0019
+Batch 200/372, Loss: 0.0022
+Batch 220/372, Loss: 0.0021
+Batch 240/372, Loss: 0.0024
+Batch 260/372, Loss: 0.0021
+Batch 280/372, Loss: 0.0022
+Batch 300/372, Loss: 0.0021
+Batch 320/372, Loss: 0.0021
+Batch 340/372, Loss: 0.0020
+Batch 360/372, Loss: 0.0022
+Moyenne Loss Epoch 5: 0.00230

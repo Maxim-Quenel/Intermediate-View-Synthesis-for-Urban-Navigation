@@ -1,0 +1,7 @@
+# Cache Python et sorties locales
+__pycache__/
+*.pyc
+
+# Dossier de rendu Street View
+street_view_project_output/
+

@@ -1,0 +1,557 @@
+﻿<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Session {{ run_id }}</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#0f172a; color:#e2e8f0; margin:0; padding:0;}
+    header { padding:20px; background:linear-gradient(120deg,#0ea5e9,#1e293b); }
+    main { max-width:1100px; margin:20px auto; padding:20px; }
+    section { background:#111827; border-radius:16px; padding:18px; margin-bottom:18px; box-shadow:0 12px 30px rgba(0,0,0,0.35);} 
+    h2 { margin:0 0 8px 0; }
+    .pair { display:flex; gap:12px; flex-wrap:wrap; }
+    .pair img { width:220px; border-radius:12px; object-fit:cover; border:1px solid #1f2937;}
+    .source-item { display:flex; flex-direction:column; gap:6px; align-items:flex-start; }
+    .delete-btn { padding:6px 10px; border-radius:8px; background:#ef4444; color:#0b1221; font-weight:800; border:none; cursor:pointer; }
+    .delete-btn:hover { background:#f87171; }
+    form { margin-top:12px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;}
+    input, select { padding:10px; border-radius:10px; border:1px solid #334155; background:#0b1221; color:#e2e8f0;}
+    button { padding:12px 16px; border:none; border-radius:10px; background:#0ea5e9; color:#0b1221; font-weight:800; cursor:pointer;}
+    button:hover { background:#38bdf8;}
+    .flash { background:#7c3aed; padding:10px; border-radius:10px; margin-bottom:10px;}
+    .rail { display:flex; gap:10px; overflow-x:auto; padding-bottom:8px;}
+    .rail img { height:220px; border-radius:10px; border:1px solid #1f2937; flex:0 0 auto;}
+    .rail::-webkit-scrollbar { height:8px; }
+    .rail::-webkit-scrollbar-thumb { background:#0ea5e9; border-radius:999px;}
+    .note { color:#94a3b8; font-size:0.95rem;}
+    .player { display:flex; flex-direction:column; gap:12px; }
+    .frame-box { background:#0b1221; border-radius:14px; padding:10px; border:1px solid #1f2937; box-shadow:0 12px 30px rgba(0,0,0,0.35); max-width:960px; }
+    .player img { width:100%; height:480px; object-fit:contain; border-radius:10px; display:block; }
+    .slider-row { display:flex; align-items:center; gap:12px; }
+    input[type=range] { flex:1; accent-color:#0ea5e9; }
+    #map { width:100%; height:320px; min-height:320px; border-radius:14px; border:1px solid #1f2937; margin-top:12px; box-shadow:0 10px 26px rgba(0,0,0,0.3); background:radial-gradient(circle at 25% 25%, #0f172a 0, #0b1221 60%); overflow:hidden; }
+    .map-hint { font-size:0.95rem; color:#cbd5e1; margin-top:8px; }
+    .loading-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.55); display:flex; align-items:center; justify-content:center; z-index:999; opacity:0; pointer-events:none; transition:opacity 0.2s ease; }
+    .loading-overlay.active { opacity:1; pointer-events:auto; }
+    .spinner { width:74px; height:74px; border-radius:50%; border:8px solid #1f2937; border-top-color:#0ea5e9; animation:spin 0.9s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg);} }
+    .loading-text { margin-top:12px; font-weight:700; color:#e2e8f0; text-align:center; }
+    .selector-row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin:10px 0; }
+    .actions-row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-top:8px; }
+    .link-btn { display:inline-flex; align-items:center; gap:6px; padding:12px 16px; border-radius:10px; background:#10b981; color:#0b1221; font-weight:800; text-decoration:none; border:1px solid #0f172a; }
+    .link-btn:hover { background:#34d399; }
+    .metric-table { width:100%; border-collapse:collapse; margin-top:8px; font-size:0.95rem; }
+    .metric-table th, .metric-table td { padding:8px 10px; border-bottom:1px solid #1f2937; text-align:left; }
+    .metric-table th { color:#cbd5e1; font-weight:700; }
+    .metric-note { color:#94a3b8; font-size:0.9rem; margin-top:8px; }
+    .metric-pill { display:inline-block; padding:4px 8px; border-radius:999px; background:#1f2937; color:#e2e8f0; font-size:0.8rem; margin-right:6px; }
+  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='leaflet/leaflet.css') }}">
+</head>
+<body>
+  <div class="loading-overlay" id="loading-overlay">
+    <div style="display:flex; flex-direction:column; align-items:center;">
+      <div class="spinner" role="status" aria-label="Chargement en cours"></div>
+      <div class="loading-text">Traitement en cours…</div>
+    </div>
+  </div>
+  <header>
+    <h1>Street View Interpolation</h1>
+    <p>Une seule page : saisissez l'adresse et la clé, choisissez le sens, interpoler, puis scrollez.</p>
+  </header>
+  <main>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for msg in messages %}
+          <div class="flash">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <section>
+      <h2>Adresse et clé</h2>
+      <form action="{{ url_for('index') }}" method="post" id="generate-form">
+        <div style="margin-bottom:12px;">
+          <label for="address">Adresse</label>
+          <input id="address" name="address" placeholder="12 rue Exemple, Paris" value="{{ address or '' }}" required>
+        </div>
+        <div style="margin-bottom:12px;">
+          <label for="api_key">Clé API Google Street View</label>
+          <input id="api_key" name="api_key" placeholder="GOOGLE_API_KEY" value="{{ default_key }}">
+        </div>
+        <div style="margin-bottom:12px;">
+          <label for="num_sources">Nombre de photos Street View à récupérer</label>
+          <input id="num_sources" name="num_sources" type="number" min="2" max="12" value="{{ num_sources or 4 }}">
+        </div>
+        <button type="submit">Générer les vues officielles</button>
+      </form>
+      <div id="map"></div>
+      <div class="map-hint">Double-cliquez sur une rue à Île-de-France pour remplir automatiquement le champ adresse.</div>
+    </section>
+
+    <section>
+      <h2>1. Vues consécutives</h2>
+      <p class="note">Plusieurs captures sont prises dans chaque sens. Choisissez la séquence à interpoler.</p>
+      {% if forward and backward %}
+        <div class="pair">
+          <div>
+            <p>Avant ({{ forward|length }} photos)</p>
+            {% for item in forward %}
+              <div class="source-item">
+                <img src="{{ item.url }}" alt="forward {{ loop.index }}">
+                <form action="{{ url_for('delete_source') }}" method="post">
+                  <input type="hidden" name="run_id" value="{{ run_id }}">
+                  <input type="hidden" name="direction" value="forward">
+                  <input type="hidden" name="index" value="{{ item.index }}">
+                  <button type="submit" class="delete-btn">Supprimer</button>
+                </form>
+              </div>
+            {% endfor %}
+          </div>
+          <div>
+            <p>Arrière ({{ backward|length }} photos)</p>
+            {% for item in backward %}
+              <div class="source-item">
+                <img src="{{ item.url }}" alt="backward {{ loop.index }}">
+                <form action="{{ url_for('delete_source') }}" method="post">
+                  <input type="hidden" name="run_id" value="{{ run_id }}">
+                  <input type="hidden" name="direction" value="backward">
+                  <input type="hidden" name="index" value="{{ item.index }}">
+                  <button type="submit" class="delete-btn">Supprimer</button>
+                </form>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        <form action="{{ url_for('run_interpolation') }}" method="post" id="interpolation-form">
+          <input type="hidden" name="run_id" value="{{ run_id }}">
+          <label for="direction">Sens :</label>
+          <select id="direction" name="direction">
+            <option value="forward">Avant (ordre des captures)</option>
+            <option value="backward">Arrière (sens opposé)</option>
+          </select>
+          <label for="frames_per_official">Frames par intervalle (par photo Street View)</label>
+          <input id="frames_per_official" name="frames_per_official" type="number" min="2" max="120" value="30">
+
+          <label for="model_name">Nom du modele</label>
+          <select id="model_name" name="model_name">
+            {% for name in depth_model_names %}
+              <option value="{{ name }}" {% if name == depth_model_name %}selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" formaction="{{ url_for('preview_depth') }}">Afficher cartes de profondeur</button>
+          <button type="submit" formaction="{{ url_for('run_interpolation') }}">Interpoler</button>
+        </form>
+      {% else %}
+        <p class="note">Aucune session active. Générer une adresse pour voir les vues.</p>
+      {% endif %}
+    </section>
+
+    
+
+    <section>
+      <h2>Cartes de profondeur</h2>
+      <p class="note">Selectionnez un sens et un modele, puis cliquez sur "Afficher cartes de profondeur".</p>
+      {% if depth_previews.forward or depth_previews.backward %}
+        {% if depth_previews.forward %}
+          <div class="frame-box">
+            <h3>Sens avant</h3>
+            {% for preview in depth_previews.forward %}
+              <p class="note">{{ preview.label }}</p>
+              <div class="rail">
+                {% for img in preview.images %}
+                  <img src="{{ img }}" alt="depth forward {{ loop.index }}">
+                {% endfor %}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+        {% if depth_previews.backward %}
+          <div class="frame-box" style="margin-top:14px;">
+            <h3>Sens arriere</h3>
+            {% for preview in depth_previews.backward %}
+              <p class="note">{{ preview.label }}</p>
+              <div class="rail">
+                {% for img in preview.images %}
+                  <img src="{{ img }}" alt="depth backward {{ loop.index }}">
+                {% endfor %}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% else %}
+        <p class="note">Aucune carte de profondeur generee pour cette session.</p>
+      {% endif %}
+    </section>
+    <section>
+      <h2>2. Test et comparaison des modeles</h2>
+      <p class="note">Compare deux modeles de profondeur sur les images sources, avec des metrics interpretable sans ground truth.</p>
+      {% if forward or backward %}
+        {% if depth_model_names|length > 1 %}
+          <form action="{{ url_for('evaluate_models') }}" method="post" id="evaluation-form">
+            <input type="hidden" name="run_id" value="{{ run_id }}">
+            <label for="eval-direction">Sens :</label>
+            <select id="eval-direction" name="direction">
+              <option value="forward">Avant</option>
+              <option value="backward">Arriere</option>
+            </select>
+            <label for="model_name_a">Modele A</label>
+            <select id="model_name_a" name="model_name_a">
+              {% for name in depth_model_names %}
+                <option value="{{ name }}" {% if name == model_compare_a %}selected{% endif %}>{{ name }}</option>
+              {% endfor %}
+            </select>
+            <label for="model_name_b">Modele B</label>
+            <select id="model_name_b" name="model_name_b">
+              {% for name in depth_model_names %}
+                <option value="{{ name }}" {% if name == model_compare_b %}selected{% endif %}>{{ name }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit">Lancer l'evaluation</button>
+          </form>
+          <p class="metric-note">
+            <span class="metric-pill">MAE/RMSE: plus bas = plus proche</span>
+            <span class="metric-pill">Pearson r: plus haut = structure globale coherente</span>
+            <span class="metric-pill">Edge F1: plus haut = ruptures de profondeur alignees</span>
+            <span class="metric-pill">Coverage: % pixels compares</span>
+          </p>
+          {% if gt_sample_ready %}
+            <form action="{{ url_for('evaluate_models_groundtruth') }}" method="post" id="evaluation-gt-form">
+              <input type="hidden" name="run_id" value="{{ run_id }}">
+              <label for="gt-model-name-a">Modele A (GT)</label>
+              <select id="gt-model-name-a" name="model_name_a">
+                {% for name in depth_model_names %}
+                  <option value="{{ name }}" {% if name == model_compare_a %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+              </select>
+              <label for="gt-model-name-b">Modele B (GT)</label>
+              <select id="gt-model-name-b" name="model_name_b">
+                {% for name in depth_model_names %}
+                  <option value="{{ name }}" {% if name == model_compare_b %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+              </select>
+              <button type="submit">Tester sur 100 images (ground truth)</button>
+            </form>
+            <p class="metric-note">
+              Test batch sur `data_train_test/photos` et `data_train_test/depth` (jusqu'a 100 samples).
+              La profondeur GT est normalisee par min/max pour comparer la structure.
+            </p>
+          {% else %}
+            <p class="note">Fichiers ground truth absents dans `data_train_test`.</p>
+          {% endif %}
+        {% else %}
+          <p class="note">Ajoutez au moins deux modeles (Depth Anything + UNet) pour lancer une comparaison.</p>
+        {% endif %}
+      {% else %}
+        <p class="note">Generez des images sources avant de comparer des modeles.</p>
+      {% endif %}
+
+      {% if ground_truth_evaluations %}
+        {% for result in ground_truth_evaluations %}
+          <div class="frame-box" style="margin-top:12px;">
+            <h3>Ground truth - {{ result.model_a.label }} vs {{ result.model_b.label }}</h3>
+            <p class="note">
+              Lancement: {{ result.created_at }}
+              {% if result.sample and result.sample.count %}- {{ result.sample.count }} samples{% endif %}
+            </p>
+            {% if result.sample and result.sample.count %}
+              <p class="note">Metriques moyennes sur {{ result.sample.count }} images. Apercu visuel = premier sample.</p>
+            {% endif %}
+            <div class="pair">
+              <div>
+                <p class="note">Image source (sample)</p>
+                <img src="{{ result.image_urls.input }}" alt="Input sample">
+              </div>
+              <div>
+                <p class="note">Profondeur {{ result.model_a.label }}</p>
+                <img src="{{ result.image_urls.depth_a }}" alt="Depth model A">
+              </div>
+              <div>
+                <p class="note">Profondeur {{ result.model_b.label }}</p>
+                <img src="{{ result.image_urls.depth_b }}" alt="Depth model B">
+              </div>
+              <div>
+                <p class="note">Profondeur reelle</p>
+                <img src="{{ result.image_urls.depth_gt }}" alt="Depth ground truth">
+              </div>
+            </div>
+            <table class="metric-table">
+              <thead>
+                <tr>
+                  <th>Metric</th>
+                  <th>{{ result.model_a.label }}</th>
+                  <th>{{ result.model_b.label }}</th>
+                  <th>Lecture</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>MAE</td>
+                  <td>{% if result.model_a.metrics.mae is not none %}{{ "%.4f"|format(result.model_a.metrics.mae) }}{% else %}n/a{% endif %}</td>
+                  <td>{% if result.model_b.metrics.mae is not none %}{{ "%.4f"|format(result.model_b.metrics.mae) }}{% else %}n/a{% endif %}</td>
+                  <td>Erreur absolue moyenne vs GT</td>
+                </tr>
+                <tr>
+                  <td>RMSE</td>
+                  <td>{% if result.model_a.metrics.rmse is not none %}{{ "%.4f"|format(result.model_a.metrics.rmse) }}{% else %}n/a{% endif %}</td>
+                  <td>{% if result.model_b.metrics.rmse is not none %}{{ "%.4f"|format(result.model_b.metrics.rmse) }}{% else %}n/a{% endif %}</td>
+                  <td>Penalise les gros ecarts</td>
+                </tr>
+                <tr>
+                  <td>Pearson r</td>
+                  <td>{% if result.model_a.metrics.pearson_r is not none %}{{ "%.3f"|format(result.model_a.metrics.pearson_r) }}{% else %}n/a{% endif %}</td>
+                  <td>{% if result.model_b.metrics.pearson_r is not none %}{{ "%.3f"|format(result.model_b.metrics.pearson_r) }}{% else %}n/a{% endif %}</td>
+                  <td>Coherence globale avec la GT</td>
+                </tr>
+                <tr>
+                  <td>Edge F1</td>
+                  <td>{% if result.model_a.metrics.edge_f1 is not none %}{{ "%.3f"|format(result.model_a.metrics.edge_f1) }}{% else %}n/a{% endif %}</td>
+                  <td>{% if result.model_b.metrics.edge_f1 is not none %}{{ "%.3f"|format(result.model_b.metrics.edge_f1) }}{% else %}n/a{% endif %}</td>
+                  <td>Alignement des ruptures</td>
+                </tr>
+                <tr>
+                  <td>Coverage (moyenne)</td>
+                  <td>{% if result.model_a.metrics.valid_ratio is not none %}{{ "%.1f"|format(result.model_a.metrics.valid_ratio * 100) }}%{% else %}n/a{% endif %}</td>
+                  <td>{% if result.model_b.metrics.valid_ratio is not none %}{{ "%.1f"|format(result.model_b.metrics.valid_ratio * 100) }}%{% else %}n/a{% endif %}</td>
+                  <td>Pixels compares (min depth {{ result.ground_truth.min_valid_depth }})</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      {% if model_evaluations %}
+        {% for result in model_evaluations %}
+          <div class="frame-box" style="margin-top:12px;">
+            <h3>{{ result.model_a.label }} vs {{ result.model_b.label }}</h3>
+            <p class="note">
+              Sens: {{ result.direction }} | Lancement: {{ result.created_at }}
+            </p>
+            <table class="metric-table">
+              <thead>
+                <tr>
+                  <th>Metric</th>
+                  <th>Valeur</th>
+                  <th>Lecture</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>MAE</td>
+                  <td>{% if result.summary.mae is not none %}{{ "%.4f"|format(result.summary.mae) }}{% else %}n/a{% endif %}</td>
+                  <td>Erreur absolue moyenne (0 = identique)</td>
+                </tr>
+                <tr>
+                  <td>RMSE</td>
+                  <td>{% if result.summary.rmse is not none %}{{ "%.4f"|format(result.summary.rmse) }}{% else %}n/a{% endif %}</td>
+                  <td>Erreur quadratique (penalise les gros ecarts)</td>
+                </tr>
+                <tr>
+                  <td>Pearson r</td>
+                  <td>{% if result.summary.pearson_r is not none %}{{ "%.3f"|format(result.summary.pearson_r) }}{% else %}n/a{% endif %}</td>
+                  <td>Coherence globale des reliefs (1 = parfait)</td>
+                </tr>
+                <tr>
+                  <td>Edge F1</td>
+                  <td>{% if result.summary.edge_f1 is not none %}{{ "%.3f"|format(result.summary.edge_f1) }}{% else %}n/a{% endif %}</td>
+                  <td>Alignement des ruptures de profondeur</td>
+                </tr>
+                <tr>
+                  <td>Coverage</td>
+                  <td>{% if result.summary.valid_ratio is not none %}{{ "%.1f"|format(result.summary.valid_ratio * 100) }}%{% else %}n/a{% endif %}</td>
+                  <td>Pixels compares (filtre min depth {{ result.summary.min_valid_depth }})</td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="metric-note">
+              Images comparees: {{ result.summary.image_count }} | Images valides: {{ result.summary.valid_image_count }}
+              {% if result.summary.duration_s is not none %}
+                | Temps total: {{ "%.1f"|format(result.summary.duration_s) }} s
+              {% endif %}
+            </p>
+            <details style="margin-top:8px;">
+              <summary class="note">Details par image</summary>
+              <table class="metric-table">
+                <thead>
+                  <tr>
+                    <th>Image</th>
+                    <th>MAE</th>
+                    <th>RMSE</th>
+                    <th>Pearson r</th>
+                    <th>Edge F1</th>
+                    <th>Coverage</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for row in result.per_image %}
+                    <tr>
+                      <td>{{ row.image }}</td>
+                      <td>{% if row.mae is not none %}{{ "%.4f"|format(row.mae) }}{% else %}n/a{% endif %}</td>
+                      <td>{% if row.rmse is not none %}{{ "%.4f"|format(row.rmse) }}{% else %}n/a{% endif %}</td>
+                      <td>{% if row.pearson_r is not none %}{{ "%.3f"|format(row.pearson_r) }}{% else %}n/a{% endif %}</td>
+                      <td>{% if row.edge_f1 is not none %}{{ "%.3f"|format(row.edge_f1) }}{% else %}n/a{% endif %}</td>
+                      <td>{% if row.valid_ratio is not none %}{{ "%.1f"|format(row.valid_ratio * 100) }}%{% else %}n/a{% endif %}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </details>
+          </div>
+        {% endfor %}
+      {% endif %}
+    </section>
+    <section>
+      <h2>3. Galerie défilable</h2>
+      <p class="note">Choisissez le dossier a afficher si plusieurs sessions existent.</p>
+      {% if available_runs %}
+        <form method="get" class="selector-row" id="gallery-form">
+          <label for="run_id">Dossier a afficher</label>
+          <select name="run_id" id="run_id">
+            <option value="">-- choisir un dossier --</option>
+            {% for folder in available_runs %}
+              <option value="{{ folder }}" {% if folder == run_id %}selected{% endif %}>{{ folder }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit">Afficher</button>
+        </form>
+      {% else %}
+        <p class="note">Aucun dossier trouve dans le repertoire de sortie.</p>
+      {% endif %}
+      <p class="note">Utilisez le curseur pour parcourir les frames une par une.</p>
+      {% if frames_forward %}
+        <div class="player" id="player-forward" data-label="Avant">
+          <h3>Sens avant</h3>
+          <div class="frame-box">
+            <img id="img-forward" src="{{ frames_forward[0] }}" alt="Frame avant">
+          </div>
+          <div class="slider-row">
+            <span id="count-forward">0 / {{ frames_forward|length - 1 }}</span>
+            <input type="range" id="range-forward" min="0" max="{{ frames_forward|length - 1 }}" value="0" step="1">
+          </div>
+          <div class="actions-row">
+            <form action="{{ url_for('make_video') }}" method="post" class="video-form">
+              <input type="hidden" name="run_id" value="{{ run_id }}">
+              <input type="hidden" name="direction" value="forward">
+              <label for="speed-forward" style="color:#cbd5e1;">Vitesse cible (m/s)</label>
+              <input id="speed-forward" name="speed_m_s" type="number" min="0.5" max="50" step="0.5" value="{{ '%.1f'|format(video_speed_m_s or 8) }}">
+              <button type="submit">Exporter en MP4 (avant)</button>
+            </form>
+            {% if video_forward %}
+              <a class="link-btn" href="{{ video_forward }}" download>Telecharger MP4 (avant)</a>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+      {% if frames_backward %}
+        <div class="player" id="player-backward" data-label="Arrière">
+          <h3>Sens arrière</h3>
+          <div class="frame-box">
+            <img id="img-backward" src="{{ frames_backward[0] }}" alt="Frame arrière">
+          </div>
+          <div class="slider-row">
+            <span id="count-backward">0 / {{ frames_backward|length - 1 }}</span>
+            <input type="range" id="range-backward" min="0" max="{{ frames_backward|length - 1 }}" value="0" step="1">
+          </div>
+          <div class="actions-row">
+            <form action="{{ url_for('make_video') }}" method="post" class="video-form">
+              <input type="hidden" name="run_id" value="{{ run_id }}">
+              <input type="hidden" name="direction" value="backward">
+              <label for="speed-backward" style="color:#cbd5e1;">Vitesse cible (m/s)</label>
+              <input id="speed-backward" name="speed_m_s" type="number" min="0.5" max="50" step="0.5" value="{{ '%.1f'|format(video_speed_m_s or 8) }}">
+              <button type="submit">Exporter en MP4 (arrière)</button>
+            </form>
+            {% if video_backward %}
+              <a class="link-btn" href="{{ video_backward }}" download>Télécharger MP4 (arrière)</a>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+      {% if not frames_forward and not frames_backward %}
+        <p class="note">Aucune frame encore générée.</p>
+      {% endif %}
+    </section>
+  </main>
+  <script>
+    const players = [
+      { list: {{ frames_forward|tojson|safe }}, imgId: 'img-forward', rangeId: 'range-forward', countId: 'count-forward' },
+      { list: {{ frames_backward|tojson|safe }}, imgId: 'img-backward', rangeId: 'range-backward', countId: 'count-backward' },
+    ];
+    players.forEach(p => {
+      if (!p.list || !p.list.length) return;
+      const img = document.getElementById(p.imgId);
+      const range = document.getElementById(p.rangeId);
+      const count = document.getElementById(p.countId);
+      if (!img || !range || !count) return;
+      range.addEventListener('input', () => {
+        const idx = parseInt(range.value, 10);
+        img.src = p.list[idx];
+        count.textContent = `${idx} / ${p.list.length - 1}`;
+      });
+    });
+  </script>
+  <script src="{{ url_for('static', filename='leaflet/leaflet.js') }}"></script>
+  <script>
+    const mapContainer = document.getElementById('map');
+    if (!window.L || !mapContainer) {
+      if (mapContainer) {
+        mapContainer.innerHTML = "<p style='padding:16px; color:#e2e8f0;'>Carte indisponible (Leaflet non chargé). Vérifiez votre connexion.</p>";
+      }
+    } else {
+      const map = L.map('map', { doubleClickZoom: false }).setView([48.8566, 2.3522], 11);
+      const bounds = L.latLngBounds([48.0, 1.5], [49.3, 3.7]);
+      map.setMaxBounds(bounds);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap',
+        maxZoom: 19,
+      }).addTo(map);
+
+      let marker;
+      const addressInput = document.getElementById('address');
+
+      async function reverseGeocode(lat, lng) {
+        const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+        const resp = await fetch(url, { headers: { 'Accept-Language': 'fr' } });
+        if (!resp.ok) throw new Error('Reverse geocoding échoué');
+        const data = await resp.json();
+        if (data && data.display_name) return data.display_name;
+        return `Lat ${lat.toFixed(5)}, Lng ${lng.toFixed(5)}`;
+      }
+
+      map.on('dblclick', async (e) => {
+        const { lat, lng } = e.latlng;
+        if (marker) {
+          marker.setLatLng(e.latlng);
+        } else {
+          marker = L.marker(e.latlng).addTo(map);
+        }
+        try {
+          addressInput.value = 'Recherche de la rue...';
+          const addr = await reverseGeocode(lat, lng);
+          addressInput.value = addr;
+        } catch (err) {
+          addressInput.value = `Lat ${lat.toFixed(5)}, Lng ${lng.toFixed(5)}`;
+        }
+      });
+    }
+
+    const overlay = document.getElementById('loading-overlay');
+    function attachLoader(formId) {
+      const form = document.getElementById(formId);
+      if (!form) return;
+      form.addEventListener('submit', () => {
+        overlay.classList.add('active');
+      });
+    }
+    attachLoader('generate-form');
+    attachLoader('interpolation-form');
+    attachLoader('evaluation-form');
+    attachLoader('evaluation-gt-form');
+    document.querySelectorAll('.video-form').forEach((form) => {
+      form.addEventListener('submit', () => {
+        overlay.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>

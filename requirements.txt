@@ -1,0 +1,11 @@
+requests
+polyline
+opencv-python
+matplotlib
+numpy
+torch
+torchvision
+transformers
+pillow
+flask
+simple-lama-inpainting

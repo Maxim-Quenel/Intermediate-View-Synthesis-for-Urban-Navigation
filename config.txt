@@ -1,0 +1,8 @@
+# Configuration du projet Street View
+# Renseignez vos secrets ici. Ce fichier est ignore par git (voir .gitignore).
+
+# Cle API Google Street View
+API_KEY=
+
+# Modele de profondeur a utiliser
+DEPTH_MODEL_ID=depth-anything/Depth-Anything-V2-Large-hf

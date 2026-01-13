@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Street View Interp</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#0f172a; color:#e2e8f0; margin:0; padding:0;}
+    header { padding:24px; text-align:center; background:linear-gradient(120deg,#1e293b,#0ea5e9);}
+    main { max-width:900px; margin:24px auto; padding:24px; background:#111827; border-radius:16px; box-shadow:0 12px 30px rgba(0,0,0,0.35);}
+    label { display:block; margin-bottom:6px; font-weight:700; letter-spacing:0.5px;}
+    input { width:100%; padding:12px; border-radius:10px; border:1px solid #334155; background:#0b1221; color:#e2e8f0;}
+    button { margin-top:16px; padding:14px 18px; border:none; border-radius:12px; background:#0ea5e9; color:#0b1221; font-weight:800; cursor:pointer;}
+    button:hover { background:#38bdf8;}
+    .flash { background:#7c3aed; padding:12px 14px; border-radius:10px; margin-bottom:16px;}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Interpolation Street View</h1>
+    <p>Adresse → deux sens → interpolation → galerie défilante</p>
+  </header>
+  <main>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for msg in messages %}
+          <div class="flash">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form action="{{ url_for('generate') }}" method="post">
+      <div style="margin-bottom:16px;">
+        <label for="address">Adresse</label>
+        <input id="address" name="address" placeholder="12 rue Exemple, Paris" required>
+      </div>
+      <div style="margin-bottom:16px;">
+        <label for="api_key">Clé API Google Street View</label>
+        <input id="api_key" name="api_key" placeholder="GOOGLE_API_KEY" value="{{ default_key }}">
+      </div>
+      <button type="submit">Générer les deux vues</button>
+    </form>
+  </main>
+</body>
+</html>

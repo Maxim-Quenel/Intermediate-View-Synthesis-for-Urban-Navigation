@@ -1,0 +1,50 @@
+{
+  "created_at": "2026-01-13T14:58:47",
+  "sample": {
+    "image": "data_train_test/90.npy",
+    "depth": "data_train_test/90_depth.npy"
+  },
+  "model_a": {
+    "name": "depth-anything/Depth-Anything-V2-Large-hf",
+    "choice": "depth-anything",
+    "model_id": "depth-anything/Depth-Anything-V2-Large-hf",
+    "unet_model_path": "",
+    "key": "depth-anything-depth-anything_depth-anything-v2-large-hf",
+    "label": "Depth Anything (depth-anything/Depth-Anything-V2-Large-hf)",
+    "metrics": {
+      "mae": 0.06692473590373993,
+      "rmse": 0.0804964229464531,
+      "pearson_r": 0.9784028037631346,
+      "edge_f1": 0.24161849710982658,
+      "valid_ratio": 0.791656494140625,
+      "valid_ratio_gt": 0.83880615234375
+    }
+  },
+  "model_b": {
+    "name": "unet_cityscapes.pth",
+    "choice": "unet",
+    "model_id": "depth-anything/Depth-Anything-V2-Large-hf",
+    "unet_model_path": "d:\\ESILV\\A5\\CV_apr\u00e8s SOTA\\test_avant_roma\\test_app - fonctionnel\\unet_cityscapes.pth",
+    "key": "unet-unet_cityscapes",
+    "label": "UNet (unet_cityscapes.pth)",
+    "metrics": {
+      "mae": 0.14934761822223663,
+      "rmse": 0.18735088407993317,
+      "pearson_r": 0.7419442319746371,
+      "edge_f1": 0.17005758157389636,
+      "valid_ratio": 0.79498291015625,
+      "valid_ratio_gt": 0.83880615234375
+    }
+  },
+  "ground_truth": {
+    "min_valid_depth": 0.05,
+    "valid_ratio": 0.83880615234375,
+    "note": "Profondeur normalisee par min/max pour comparer la structure."
+  },
+  "images": {
+    "input": "run-20260113-145801/model_metrics/ground_truth/depth-anything-depth-anything_depth-anything-v2-large-hf__vs__unet-unet_cityscapes/input.jpg",
+    "depth_a": "run-20260113-145801/model_metrics/ground_truth/depth-anything-depth-anything_depth-anything-v2-large-hf__vs__unet-unet_cityscapes/depth_model_a.jpg",
+    "depth_b": "run-20260113-145801/model_metrics/ground_truth/depth-anything-depth-anything_depth-anything-v2-large-hf__vs__unet-unet_cityscapes/depth_model_b.jpg",
+    "depth_gt": "run-20260113-145801/model_metrics/ground_truth/depth-anything-depth-anything_depth-anything-v2-large-hf__vs__unet-unet_cityscapes/depth_ground_truth.jpg"
+  }
+}
